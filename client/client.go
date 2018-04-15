@@ -35,6 +35,58 @@ func NewHTTPClient(hc *http.Client, endpoint string) *HTTPClient {
 	}
 }
 
+func (c *HTTPClient) MakeCall(method string, args interface{}) ([]byte, error) {
+	data := map[string]interface{}{
+		"jsonrpc": "2.0",
+		"method":  method,
+		"params":  args,
+		"id":      1,
+	}
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	request, err := http.NewRequest("POST", c.endpoint, strings.NewReader(string(dataJSON)))
+	if err != nil {
+		return nil, err
+	}
+	defer request.Body.Close()
+	request.Header.Add("Content-Type", "application/json")
+
+	log.Debug("Making JSON request: ", string(dataJSON))
+	response, err := c.client.Do(request)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer response.Body.Close()
+
+	// Check if the result is an error
+	type responseError struct {
+		Jsonrpc string `json:"jsonrpc"`
+		ID      int    `json:"id"`
+		Error   struct {
+			Code    int    `json:"code"`
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	var respErr responseError
+	if err := json.Unmarshal(body, &respErr); err != nil {
+		return []byte{}, err
+	}
+	if respErr.Error.Code != 0 {
+		return []byte{}, fmt.Errorf("code: %d, error: %s", respErr.Error.Code, respErr.Error.Message)
+	}
+
+	log.Debug("Got reply body: ", string(body))
+	return body, nil
+}
+
 func (c *HTTPClient) MakeRawCall(method string, args []string) ([]byte, error) {
 	data := map[string]interface{}{
 		"jsonrpc": "2.0",
@@ -196,17 +248,12 @@ func (c *HTTPClient) Eth_sendRawTransaction(signedTransaction string) (string, e
 // Net_version returns the current network id as described here
 // https://github.com/ethereum/wiki/wiki/JSON-RPC#net_version
 func (c *HTTPClient) Net_version() (int64, error) {
-	reply, err := c.MakeRawCall("net_version", []string{})
+	reply, err := c.MakeCall("net_version", []interface{}{})
 	if err != nil {
 		return 0, err
 	}
 
-	type net_version struct {
-		ID      int    `json:"id"`
-		Jsonrpc string `json:"jsonrpc"`
-		Result  int64  `json:"result,string"`
-	}
-	var networkIDReply net_version
+	var networkIDReply response_netVersion
 
 	err = json.Unmarshal(reply, &networkIDReply)
 	if err != nil {
@@ -220,17 +267,12 @@ func (c *HTTPClient) Net_version() (int64, error) {
 //
 // See https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blocknumber
 func (c *HTTPClient) Eth_blockNumber() (*big.Int, error) {
-	reply, err := c.MakeRawCall("eth_blockNumber", []string{})
+	reply, err := c.MakeCall("eth_blockNumber", []interface{}{})
 	if err != nil {
 		return big.NewInt(0), err
 	}
 
-	type eth_blockNumber struct {
-		Jsonrpc string `json:"jsonrpc"`
-		Result  string `json:"result"`
-		ID      uint   `json:"id"`
-	}
-	var blockNumberReply eth_blockNumber
+	var blockNumberReply response_ethBlockNumber
 
 	err = json.Unmarshal(reply, &blockNumberReply)
 	if err != nil {
@@ -240,4 +282,24 @@ func (c *HTTPClient) Eth_blockNumber() (*big.Int, error) {
 	blockNumber := hexStrToBigInt(blockNumberReply.Result)
 
 	return blockNumber, nil
+}
+
+// Eth_getBlockByNumber returns the block with or without the transaction list included
+//
+// See https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbynumber
+func (c *HTTPClient) Eth_getBlockByNumber(blockNumberHex string, includeTransactions bool) (Block, error) {
+	reply, err := c.MakeCall("eth_getBlockByNumber", []interface{}{
+		blockNumberHex, includeTransactions,
+	})
+	if err != nil {
+		return Block{}, err
+	}
+
+	var responseBlock response_ethGetBlockByNumber
+	err = json.Unmarshal(reply, &responseBlock)
+	if err != nil {
+		return Block{}, err
+	}
+
+	return responseBlock.Result, nil
 }

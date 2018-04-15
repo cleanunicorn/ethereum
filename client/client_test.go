@@ -1,19 +1,21 @@
 package client_test
 
-// import (
-// 	"fmt"
-// 	"math/big"
-// 	"reflect"
-// 	"testing"
+import (
+	"encoding/json"
+	"flag"
+	"io/ioutil"
+	"math/big"
+	"net/http"
+	"path/filepath"
+	"reflect"
+	"testing"
 
-// 	client "github.com/cleanunicorn/ethereum/client"
-// 	"github.com/ethereum/go-ethereum/common"
-// 	gethtypes "github.com/ethereum/go-ethereum/core/types"
-// 	"gitlab.com/cleanunicorn/eth-tipper/core"
-// 	"gitlab.com/cleanunicorn/eth-tipper/core/types"
-// )
+	"github.com/cleanunicorn/ethereum/client"
+)
 
-// var testServerHTTP = "http://127.0.0.1:8545"
+var update = flag.Bool("update", false, "update golden files")
+
+var testMainnetHTTPEndpoint = "https://mainnet.infura.io:8545"
 
 // func TestGetTransactionCount(t *testing.T) {
 // 	s := client.Client{
@@ -70,101 +72,173 @@ package client_test
 // 	if err != nil {
 // 		t.Error("Error sending signed transaction", err)
 // 	}
-
+// Network
 // 	if len(tHash) != 66 {
 // 		t.Error("Expecting hash, got:", tHash)
 // 	}
 // }
 
-// func TestJSONRPCEthereumServer_Net_version(t *testing.T) {
-// 	type fields struct {
-// 		url string
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		fields  fields
-// 		want    int64
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Network ID should be 99",
-// 			fields: fields{
-// 				url: testServerHTTP,
-// 			},
-// 			want: 99,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			s := client.Client{
-// 				HTTP: tt.fields.url,
-// 			}
-// 			got, err := s.Net_version()
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("JSONRPCEthereumServer.Net_version() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 			if got != tt.want {
-// 				t.Errorf("JSONRPCEthereumServer.Net_version() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
+func TestHTTPClient_Net_version(t *testing.T) {
+	type fields struct {
+		url string
+	}
+	tests := []struct {
+		name     string
+		endpoint string
+		want     int64
+		wantErr  bool
+	}{
+		{
+			name:     "Mainnet ID should be 1",
+			endpoint: testMainnetHTTPEndpoint,
+			want:     1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := client.DialHTTP(tt.endpoint)
+			got, err := c.Net_version()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("JSONRPCEthereumServer.Net_version() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("JSONRPCEthereumServer.Net_version() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
-// func TestClient_Eth_getBalance(t *testing.T) {
-// 	type fields struct {
-// 		HTTP string
-// 	}
-// 	type args struct {
-// 		account string
-// 		block   string
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		fields  fields
-// 		args    args
-// 		want    string
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Should be untouched in the latest block",
-// 			fields: fields{
-// 				HTTP: testServerHTTP,
-// 			},
-// 			args: args{
-// 				account: "0x5a70a6b58d20c95a3fd29a0ee046412cddc98bde",
-// 				block:   "latest",
-// 			},
-// 			want:    "100000000000000000000",
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "Should be untouched in block 0x0",
-// 			fields: fields{
-// 				HTTP: testServerHTTP,
-// 			},
-// 			args: args{
-// 				account: "0x5a70a6b58d20c95a3fd29a0ee046412cddc98bde",
-// 				block:   "0x0",
-// 			},
-// 			want:    "100000000000000000000",
-// 			wantErr: false,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			s := &client.Client{
-// 				HTTP: tt.fields.HTTP,
-// 			}
-// 			got, err := s.Eth_getBalance(tt.args.account, tt.args.block)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("Client.Eth_getBalance() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 			want, _ := big.NewInt(0).SetString(tt.want, 10)
-// 			if !reflect.DeepEqual(got, want) {
-// 				t.Errorf("Client.Eth_getBalance() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
+func TestHTTPClient_Eth_getBalance(t *testing.T) {
+	const emptyAccount = "0x00000000000000000000000000000000000000ff"
+
+	type fields struct {
+		HTTP string
+	}
+	type args struct {
+		account string
+		block   string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Should be untouched in the latest block",
+			fields: fields{
+				HTTP: testMainnetHTTPEndpoint,
+			},
+			args: args{
+				account: emptyAccount,
+				block:   "latest",
+			},
+			want:    "0",
+			wantErr: false,
+		},
+		{
+			name: "Should be untouched in block 0x0",
+			fields: fields{
+				HTTP: testMainnetHTTPEndpoint,
+			},
+			args: args{
+				account: emptyAccount,
+				block:   "0x0",
+			},
+			want:    "0",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := client.DialHTTP(testMainnetHTTPEndpoint)
+			got, err := c.Eth_getBalance(tt.args.account, tt.args.block)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Client.Eth_getBalance() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			want, _ := big.NewInt(0).SetString(tt.want, 10)
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("Client.Eth_getBalance() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestHTTPClient_Eth_getBlockByNumber(t *testing.T) {
+	type fields struct {
+		client   *http.Client
+		endpoint string
+	}
+	type args struct {
+		blockNumberHex      string
+		includeTransactions bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Get block 1",
+			args: args{
+				blockNumberHex: "0x1",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := client.DialHTTP(testMainnetHTTPEndpoint)
+			got, err := c.Eth_getBlockByNumber(tt.args.blockNumberHex, tt.args.includeTransactions)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HTTPClient.Eth_getBlockByNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			golden := filepath.Join("test-fixtures/", tt.name+".golden")
+			if *update {
+				gotJSON, _ := json.MarshalIndent(got, "", "    ")
+				ioutil.WriteFile(golden, gotJSON, 0644)
+			}
+			wantJSON, _ := ioutil.ReadFile(golden)
+			var want client.Block
+			if err := json.Unmarshal(wantJSON, &want); err != nil {
+				t.Error("Could not unmarshal expected response, err: ", err)
+			}
+
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("HTTPClient.Eth_getBlockByNumber() = %v, want %v", got, want)
+			}
+		})
+	}
+}
+
+func TestHTTPClient_Eth_blockNumber(t *testing.T) {
+	tests := []struct {
+		name     string
+		endpoint string
+		wantErr  bool
+	}{
+		{
+			name:     "Block number should be greater than 0",
+			endpoint: testMainnetHTTPEndpoint,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := client.DialHTTP(tt.endpoint)
+			got, err := c.Eth_blockNumber()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HTTPClient.Eth_blockNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if cmp := got.Cmp(big.NewInt(1)); cmp != 1 {
+				t.Errorf("HTTPClient.Eth_blockNumber() = %v, cmp = %d", got, cmp)
+			}
+		})
+	}
+}
