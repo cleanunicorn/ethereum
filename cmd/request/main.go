@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strconv"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/cleanunicorn/ethereum/client"
 )
 
@@ -16,17 +17,50 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 
-	fmt.Println("endpointHTTP = ", *endpointHTTP)
-	fmt.Println("Method = ", *method)
-	fmt.Println("Args = ", args)
-
 	c, err := client.DialHTTP(*endpointHTTP)
 	if err != nil {
-		log.Fatalf("Could not dial into HTTP endpoint: %s, err: %s", endpointHTTP, err)
+		fmt.Printf("Could not dial into HTTP endpoint: %s, err: %s", *endpointHTTP, err)
+		os.Exit(1)
 	}
-	log.Debug(c)
 
-	response, err := c.MakeRawCall(*method, args)
-	log.Println(response)
-	log.Println(err)
+	var params []interface{}
+	switch *method {
+	case "eth_getBlockByNumber":
+		blockNumber, err := strconv.ParseInt(args[0], 0, 64)
+		if err != nil {
+			fmt.Printf("Error transforming %s to number, err: %s", args[0], err)
+			os.Exit(1)
+		}
+
+		includeTransactionData, err := strconv.ParseBool(args[1])
+		if err != nil {
+			fmt.Printf("Error transforming %s to bool, err: %s", args[1], err)
+			os.Exit(1)
+		}
+
+		params = []interface{}{
+			fmt.Sprintf("0x%x", blockNumber),
+			includeTransactionData,
+		}
+	case "eth_getUncleCountByBlockNumber":
+		blockNumber, err := strconv.ParseInt(args[0], 0, 64)
+		if err != nil {
+			fmt.Printf("Error transforming %s to number, err: %s", args[0], err)
+			os.Exit(1)
+		}
+
+		params = []interface{}{
+			fmt.Sprintf("0x%x", blockNumber),
+		}
+	default:
+		for _, arg := range args {
+			params = append(params, arg)
+		}
+	}
+
+	response, err := c.MakeRawCall(*method, params)
+	if err != nil {
+		fmt.Println("Error making request, err: ", err)
+	}
+	fmt.Println(string(response))
 }

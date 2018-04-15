@@ -12,15 +12,16 @@ import (
 	"testing"
 
 	"github.com/cleanunicorn/ethereum/client"
+	"github.com/cleanunicorn/ethereum/core"
+	"github.com/cleanunicorn/ethereum/types"
 	"github.com/ethereum/go-ethereum/common"
-	"gitlab.com/cleanunicorn/eth-tipper/core"
-	"gitlab.com/cleanunicorn/eth-tipper/core/types"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 var update = flag.Bool("update", false, "update golden files")
 
 const testMainnetHTTPEndpoint = "https://mainnet.infura.io:8545"
-const testGanacheHTTPEndpoint = "https://localhost:8545"
+const testGanacheHTTPEndpoint = "http://localhost:8545"
 
 const emptyAccount = "0x00000000000000000000000000000000000000ff"
 const zeroAccount = "0x0000000000000000000000000000000000000000"
@@ -42,27 +43,35 @@ const zeroAccount = "0x0000000000000000000000000000000000000000"
 // }
 
 func TestSendSignedTransaction(t *testing.T) {
-	s, err := client.DialHTTP(testGanacheHTTPEndpoint)
+	c, err := client.DialHTTP(testGanacheHTTPEndpoint)
 
 	a, _ := types.AccountFromHexKey("5905ed74bb339cf0f456020ecd63415d80588f234ffcffca4fe119b13b8ef32a")
 	b, _ := types.AccountFromHexKey("d1ecb25acf8387b949e50809ceedc47abfeeca1e04a8ddfb083f3aebe6d5e680")
 
 	signer := core.CreateSigner(99)
 
-	nonce, err := s.Eth_getTransactionCount("0xd84cf7a5a3c7985398c591bc61662b8be438dab8", "latest")
+	nonce, err := c.Eth_getTransactionCount("0xd84cf7a5a3c7985398c591bc61662b8be438dab8", "latest")
 	if err != nil {
 		t.Error("Could not get account nonce err: ", err)
 	}
-	tx, err := core.SignTx(signer, a, nonce, common.HexToAddress(b.Address()), big.NewInt(0), 21000, big.NewInt(1), []byte{})
+	tx, err := core.SignTx(
+		signer,
+		a,
+		nonce,
+		common.HexToAddress(b.Address()),
+		big.NewInt(0),
+		21000,
+		big.NewInt(1),
+		[]byte{},
+	)
 
 	txs := gethtypes.Transactions{tx}
 	txH := fmt.Sprintf("0x%x", txs.GetRlp(0))
 
-	tHash, err := s.Eth_sendRawTransaction(txH)
+	tHash, err := c.Eth_sendRawTransaction(txH)
 	if err != nil {
 		t.Error("Error sending signed transaction", err)
 	}
-	Network
 	if len(tHash) != 66 {
 		t.Error("Expecting hash, got:", tHash)
 	}

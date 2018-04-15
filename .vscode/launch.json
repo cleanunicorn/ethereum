@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Request",
+            "name": "Get block by number",
             "type": "go",
             "request": "launch",
             "mode": "debug",
@@ -15,9 +15,9 @@
             "program": "${fileDirname}",
             "env": {},
             "args": [
-                "--http=http://localhost:8545",
+                "--http=https://mainnet.infura.io:8545",
                 "--method=eth_getBlockByNumber",
-                "0x1",
+                "0xaffff",
                 "true"
             ],
             "showLog": true

@@ -87,7 +87,7 @@ func (c *HTTPClient) MakeCall(method string, args interface{}) ([]byte, error) {
 	return body, nil
 }
 
-func (c *HTTPClient) MakeRawCall(method string, args []string) ([]byte, error) {
+func (c *HTTPClient) MakeRawCall(method string, args []interface{}) ([]byte, error) {
 	data := map[string]interface{}{
 		"jsonrpc": "2.0",
 		"method":  method,
