@@ -20,6 +20,10 @@ jobs:
     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
+      
+      - run: |
+        docker login -u $DOCKER_USER -p $DOCKER_PASS
+        docker run -d --name ganache --net=host trufflesuite/ganache-cli:latest -s 99 -i 99
 
       # specify any bash command here prefixed with `run: `
       - run: go get -v -t -d ./...
