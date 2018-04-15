@@ -3,6 +3,7 @@ package client_test
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -11,27 +12,18 @@ import (
 	"testing"
 
 	"github.com/cleanunicorn/ethereum/client"
+	"github.com/ethereum/go-ethereum/common"
+	"gitlab.com/cleanunicorn/eth-tipper/core"
+	"gitlab.com/cleanunicorn/eth-tipper/core/types"
 )
 
 var update = flag.Bool("update", false, "update golden files")
 
-var testMainnetHTTPEndpoint = "https://mainnet.infura.io:8545"
+const testMainnetHTTPEndpoint = "https://mainnet.infura.io:8545"
+const testGanacheHTTPEndpoint = "https://localhost:8545"
 
-// func TestGetTransactionCount(t *testing.T) {
-// 	s := client.Client{
-// 		HTTP: testServerHTTP,
-// 	}
-
-// 	// TODO: add an account with transaction number > 0
-// 	transactionCount, err := s.Eth_getTransactionCount("0xfB8ab195c0134B6c809b176B5d829aC2e058e6b4", "latest")
-// 	if err != nil {
-// 		t.Error("Received error while getting transaction count", err)
-// 	}
-
-// 	if transactionCount != 0 {
-// 		t.Error("Error getting transaction count \texpected:", 0, "\tgot:", transactionCount)
-// 	}
-// }
+const emptyAccount = "0x00000000000000000000000000000000000000ff"
+const zeroAccount = "0x0000000000000000000000000000000000000000"
 
 // func TestGetBalance(t *testing.T) {
 // 	s := client.Client{
@@ -49,34 +41,32 @@ var testMainnetHTTPEndpoint = "https://mainnet.infura.io:8545"
 // 	}
 // }
 
-// func TestSendSignedTransaction(t *testing.T) {
-// 	s := client.Client{
-// 		HTTP: testServerHTTP,
-// 	}
+func TestSendSignedTransaction(t *testing.T) {
+	s, err := client.DialHTTP(testGanacheHTTPEndpoint)
 
-// 	a, _ := types.AccountFromHexKey("5905ed74bb339cf0f456020ecd63415d80588f234ffcffca4fe119b13b8ef32a")
-// 	b, _ := types.AccountFromHexKey("d1ecb25acf8387b949e50809ceedc47abfeeca1e04a8ddfb083f3aebe6d5e680")
+	a, _ := types.AccountFromHexKey("5905ed74bb339cf0f456020ecd63415d80588f234ffcffca4fe119b13b8ef32a")
+	b, _ := types.AccountFromHexKey("d1ecb25acf8387b949e50809ceedc47abfeeca1e04a8ddfb083f3aebe6d5e680")
 
-// 	signer := core.CreateSigner(99)
+	signer := core.CreateSigner(99)
 
-// 	nonce, err := s.Eth_getTransactionCount("0xd84cf7a5a3c7985398c591bc61662b8be438dab8", "latest")
-// 	if err != nil {
-// 		t.Error("Could not get account nonce err: ", err)
-// 	}
-// 	tx, err := core.SignTx(signer, a, nonce, common.HexToAddress(b.Address()), big.NewInt(0), 21000, big.NewInt(1), []byte{})
+	nonce, err := s.Eth_getTransactionCount("0xd84cf7a5a3c7985398c591bc61662b8be438dab8", "latest")
+	if err != nil {
+		t.Error("Could not get account nonce err: ", err)
+	}
+	tx, err := core.SignTx(signer, a, nonce, common.HexToAddress(b.Address()), big.NewInt(0), 21000, big.NewInt(1), []byte{})
 
-// 	txs := gethtypes.Transactions{tx}
-// 	txH := fmt.Sprintf("0x%x", txs.GetRlp(0))
+	txs := gethtypes.Transactions{tx}
+	txH := fmt.Sprintf("0x%x", txs.GetRlp(0))
 
-// 	tHash, err := s.Eth_sendRawTransaction(txH)
-// 	if err != nil {
-// 		t.Error("Error sending signed transaction", err)
-// 	}
-// Network
-// 	if len(tHash) != 66 {
-// 		t.Error("Expecting hash, got:", tHash)
-// 	}
-// }
+	tHash, err := s.Eth_sendRawTransaction(txH)
+	if err != nil {
+		t.Error("Error sending signed transaction", err)
+	}
+	Network
+	if len(tHash) != 66 {
+		t.Error("Expecting hash, got:", tHash)
+	}
+}
 
 func TestHTTPClient_Net_version(t *testing.T) {
 	type fields struct {
@@ -110,8 +100,6 @@ func TestHTTPClient_Net_version(t *testing.T) {
 }
 
 func TestHTTPClient_Eth_getBalance(t *testing.T) {
-	const emptyAccount = "0x00000000000000000000000000000000000000ff"
-
 	type fields struct {
 		HTTP string
 	}
@@ -238,6 +226,75 @@ func TestHTTPClient_Eth_blockNumber(t *testing.T) {
 			}
 			if cmp := got.Cmp(big.NewInt(1)); cmp != 1 {
 				t.Errorf("HTTPClient.Eth_blockNumber() = %v, cmp = %d", got, cmp)
+			}
+		})
+	}
+}
+
+func TestHTTPClient_Eth_getTransactionCount(t *testing.T) {
+	type args struct {
+		account string
+		block   string
+	}
+	tests := []struct {
+		name     string
+		endpoint string
+		args     args
+		want     uint64
+		wantErr  bool
+	}{
+		{
+			name:     "Account " + zeroAccount + " should have 0 transactions",
+			endpoint: testMainnetHTTPEndpoint,
+			args: args{
+				account: zeroAccount,
+				block:   "latest",
+			},
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := client.DialHTTP(testMainnetHTTPEndpoint)
+			got, err := c.Eth_getTransactionCount(tt.args.account, tt.args.block)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HTTPClient.Eth_getTransactionCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("HTTPClient.Eth_getTransactionCount() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestHTTPClient_Eth_sendRawTransaction(t *testing.T) {
+	type fields struct {
+		client   *http.Client
+		endpoint string
+	}
+	type args struct {
+		signedTransaction string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := client.DialHTTP(testMainnetHTTPEndpoint)
+			got, err := c.Eth_sendRawTransaction(tt.args.signedTransaction)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HTTPClient.Eth_sendRawTransaction() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("HTTPClient.Eth_sendRawTransaction() = %v, want %v", got, tt.want)
 			}
 		})
 	}

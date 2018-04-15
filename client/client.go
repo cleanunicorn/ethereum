@@ -144,7 +144,7 @@ func (c *HTTPClient) MakeRawCall(method string, args []string) ([]byte, error) {
 //
 // See https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactioncount
 func (c *HTTPClient) Eth_getTransactionCount(account string, block string) (uint64, error) {
-	reply, err := c.MakeRawCall("eth_getTransactionCount", []string{account, block})
+	reply, err := c.MakeCall("eth_getTransactionCount", []interface{}{account, block})
 	if err != nil {
 		return 0, err
 	}
@@ -175,11 +175,10 @@ func (c *HTTPClient) Eth_getTransactionCount(account string, block string) (uint
 //
 //    latest	// most recent account balance
 //    0x1	// account's balance at block 1
-//    1234	// account's balance at block 1234
 //
 // See https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactioncount
 func (c *HTTPClient) Eth_getBalance(account string, block string) (*big.Int, error) {
-	reply, err := c.MakeRawCall("eth_getBalance", []string{account, block})
+	reply, err := c.MakeCall("eth_getBalance", []interface{}{account, block})
 	if err != nil {
 		return big.NewInt(0), err
 	}
@@ -202,7 +201,7 @@ func (c *HTTPClient) Eth_getBalance(account string, block string) (*big.Int, err
 }
 
 func (c *HTTPClient) Eth_sendRawTransaction(signedTransaction string) (string, error) {
-	reply, err := c.MakeRawCall("eth_sendRawTransaction", []string{signedTransaction})
+	reply, err := c.MakeCall("eth_sendRawTransaction", []interface{}{signedTransaction})
 	if err != nil {
 		return "", err
 	}
