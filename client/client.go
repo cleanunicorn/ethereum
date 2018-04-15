@@ -171,7 +171,7 @@ func (c *HTTPClient) Eth_getTransactionCount(account string, block string) (uint
 
 // Eth_getBalance returns the balance of the account at the specified block.
 //
-// block can one of
+// block can be one of
 //
 //    latest	// most recent account balance
 //    0x1	// account's balance at block 1
