@@ -25,10 +25,10 @@ func DialHTTP(endpointHTTP string) (*HTTPClient, error) {
 	var httpTransport = &http.Transport{}
 	var httpClient = &http.Client{Transport: httpTransport}
 
-	return NewHTTPClient(httpClient, endpointHTTP), nil
+	return newHTTPClient(httpClient, endpointHTTP), nil
 }
 
-func NewHTTPClient(hc *http.Client, endpoint string) *HTTPClient {
+func newHTTPClient(hc *http.Client, endpoint string) *HTTPClient {
 	return &HTTPClient{
 		client:   hc,
 		endpoint: endpoint,

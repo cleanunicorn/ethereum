@@ -26,22 +26,6 @@ const testGanacheHTTPEndpoint = "http://localhost:8545"
 const emptyAccount = "0x00000000000000000000000000000000000000ff"
 const zeroAccount = "0x0000000000000000000000000000000000000000"
 
-// func TestGetBalance(t *testing.T) {
-// 	s := client.Client{
-// 		HTTP: testServerHTTP,
-// 	}
-
-// 	// TODO: add an account with balance > 0
-// 	balance, err := s.Eth_getBalance("0xfB8ab195c0134B6c809b176B5d829aC2e058e6b4", "latest")
-// 	if err != nil {
-// 		t.Error("Received error while getting balance", err)
-// 	}
-
-// 	if balance.Cmp(big.NewInt(0)) != 0 {
-// 		t.Error("Error getting balance \texpected:", 0, "\tgot:", balance)
-// 	}
-// }
-
 func TestSendSignedTransaction(t *testing.T) {
 	c, err := client.DialHTTP(testGanacheHTTPEndpoint)
 
