@@ -349,7 +349,6 @@ func startGanache(t *testing.T) func() {
 			t.Fatal("Error reading output")
 		}
 		output = output + string(buff[:n])
-		fmt.Printf("%s", string(buff[:n]))
 
 		if strings.Contains(output, "Listening on localhost:8545") {
 			break

@@ -58,7 +58,7 @@ func main() {
 		}
 	}
 
-	response, err := c.MakeRawCall(*method, params)
+	response, err := c.Call(*method, params)
 	if err != nil {
 		fmt.Println("Error making request, err: ", err)
 	}
