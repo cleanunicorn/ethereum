@@ -330,7 +330,9 @@ func TestHTTPClient_Eth_sendRawTransaction(t *testing.T) {
 }
 
 func startGanache(t *testing.T) func() {
-	ganache := exec.Command("ganache-cli", "-i", fmt.Sprintf("%d", testGanacheNetworkID), "-s", "99", "-d", "0")
+	command := "docker"
+	args := "run --net=host --name=ganache --rm trufflesuite/ganache-cli -s 99 -d 0 -i " + fmt.Sprintf("%d", testGanacheNetworkID)
+	ganache := exec.Command(command, strings.Split(args, " ")...)
 	ganacheOut, err := ganache.StdoutPipe()
 	if err != nil {
 		t.Fatal(err)
@@ -347,11 +349,16 @@ func startGanache(t *testing.T) func() {
 			t.Fatal("Error reading output")
 		}
 		output = output + string(buff[:n])
+		fmt.Printf("%s", string(buff[:n]))
 
 		if strings.Contains(output, "Listening on localhost:8545") {
 			break
 		}
 	}
 
-	return func() { ganache.Process.Kill() }
+	return func() {
+		ganache.Process.Kill()
+		rmContainer := exec.Command("docker", "rm", "-f", "ganache")
+		rmContainer.Run()
+	}
 }
