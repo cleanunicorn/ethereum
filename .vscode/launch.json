@@ -12,12 +12,13 @@
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "program": "${fileDirname}",
+            "program": "${workspaceRoot}/cmd/eth-request/",
             "env": {},
             "args": [
                 "--http=https://mainnet.infura.io:8545",
                 "--method=eth_getBlockByNumber",
-                "--params={\"0x1\", true}"
+                "0x1", 
+                "true",
             ],
             "showLog": true
         }
