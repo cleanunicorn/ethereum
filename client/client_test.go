@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
+	"net/http"
 	"os/exec"
 	"path/filepath"
 	"reflect"
@@ -39,6 +40,45 @@ const ganacheAccount6 = "0x273040d239bc002ccdebf6c5d69e4a751731402b"
 const ganacheAccount7 = "0x9f594debb9d77a77e5a63477f0c5e5d3464c208e"
 const ganacheAccount8 = "0xb2784b58c227c8968fc78ae4829c87996d497d70"
 const ganacheAccount9 = "0x5a70a6b58d20c95a3fd29a0ee046412cddc98bde"
+
+func startGanache(t *testing.T) func() {
+	// Make sure ganache is stopped
+	ganacheStop := exec.Command("docker", []string{"rm", "-f", "ganache"}...)
+	ganacheStop.Start()
+	ganacheStop.Wait()
+
+	// Start Ganache
+	command := "docker"
+	args := "run --net=host --name=ganache --rm trufflesuite/ganache-cli -s 99 -d 0 -i " + fmt.Sprintf("%d", testGanacheNetworkID)
+	ganache := exec.Command(command, strings.Split(args, " ")...)
+	ganacheOut, err := ganache.StdoutPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ganache.Start(); err != nil {
+		t.Fatal(err)
+	}
+
+	buff := make([]byte, 10000)
+	var output string
+	for {
+		n, err := ganacheOut.Read(buff)
+		if err != nil {
+			t.Fatal("Error reading output")
+		}
+		output = output + string(buff[:n])
+
+		if strings.Contains(output, "Listening on localhost:8545") {
+			break
+		}
+	}
+
+	return func() {
+		ganache.Process.Kill()
+		rmContainer := exec.Command("docker", "rm", "-f", "ganache")
+		rmContainer.Run()
+	}
+}
 
 func TestHTTPClient_Net_version(t *testing.T) {
 	defer startGanache(t)()
@@ -329,35 +369,56 @@ func TestHTTPClient_Eth_sendRawTransaction(t *testing.T) {
 	}
 }
 
-func startGanache(t *testing.T) func() {
-	command := "docker"
-	args := "run --net=host --name=ganache --rm trufflesuite/ganache-cli -s 99 -d 0 -i " + fmt.Sprintf("%d", testGanacheNetworkID)
-	ganache := exec.Command(command, strings.Split(args, " ")...)
-	ganacheOut, err := ganache.StdoutPipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := ganache.Start(); err != nil {
-		t.Fatal(err)
-	}
+func TestHTTPClient_Eth_getTransactionReceipt(t *testing.T) {
+	defer startGanache(t)()
 
-	buff := make([]byte, 10000)
-	var output string
-	for {
-		n, err := ganacheOut.Read(buff)
-		if err != nil {
-			t.Fatal("Error reading output")
-		}
-		output = output + string(buff[:n])
-
-		if strings.Contains(output, "Listening on localhost:8545") {
-			break
-		}
+	type fields struct {
+		client   *http.Client
+		endpoint string
 	}
+	type args struct {
+		transactionHash string
+	}
+	tests := []struct {
+		name     string
+		endpoint string
+		args     args
+		wantErr  bool
+	}{
+		{
+			name:     "Get receipt from transaction hash contract call",
+			endpoint: testMainnetHTTPEndpoint,
+			args: args{
+				transactionHash: "0x4c65570f9ceab8a0a575af2f500b83c7d8077d595e42dff4c1f90e53b05c9ae8",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := client.DialHTTP(
+				tt.endpoint,
+			)
+			got, err := c.Eth_getTransactionReceipt(tt.args.transactionHash)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HTTPClient.Eth_getTransactionReceipt() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 
-	return func() {
-		ganache.Process.Kill()
-		rmContainer := exec.Command("docker", "rm", "-f", "ganache")
-		rmContainer.Run()
+			golden := filepath.Join("test-fixtures/", tt.name+".golden")
+			if *update {
+				gotJSON, _ := json.MarshalIndent(got, "", "    ")
+				ioutil.WriteFile(golden, gotJSON, 0644)
+			}
+			wantJSON, _ := ioutil.ReadFile(golden)
+			var want client.Receipt
+			if err := json.Unmarshal(wantJSON, &want); err != nil {
+				t.Error("Could not unmarshal expected response, err: ", err)
+			}
+
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("HTTPClient.Eth_getTransactionReceipt() = %v, want %v", got, want)
+			}
+		})
 	}
 }

@@ -18,6 +18,12 @@ type response_ethBlockNumber struct {
 	ID      uint   `json:"id"`
 }
 
+type response_ethGetTransactionReceipt struct {
+	Jsonrpc string  `json:"jsonrpc"`
+	Result  Receipt `json:"result"`
+	ID      int     `json:"id"`
+}
+
 // Block represents a block structure containing the full transaction list
 type Block struct {
 	Difficulty      string `json:"difficulty"`
@@ -79,4 +85,30 @@ type BlockShort struct {
 	Transactions     []string `json:"transactions"`
 	TransactionsRoot string   `json:"transactionsRoot"`
 	Uncles           []string `json:"uncles"`
+}
+
+// Receipt represents a transaction receipt
+type Receipt struct {
+	BlockHash         string `json:"blockHash"`
+	BlockNumber       string `json:"blockNumber"`
+	ContractAddress   string `json:"contractAddress"`
+	CumulativeGasUsed string `json:"cumulativeGasUsed"`
+	GasUsed           string `json:"gasUsed"`
+	Logs              []struct {
+		Address             string   `json:"address"`
+		BlockHash           string   `json:"blockHash"`
+		BlockNumber         string   `json:"blockNumber"`
+		Data                string   `json:"data"`
+		LogIndex            string   `json:"logIndex"`
+		Topics              []string `json:"topics"`
+		TransactionHash     string   `json:"transactionHash"`
+		TransactionIndex    string   `json:"transactionIndex"`
+		TransactionLogIndex string   `json:"transactionLogIndex"`
+		Type                string   `json:"type"`
+	} `json:"logs"`
+	LogsBloom        string `json:"logsBloom"`
+	Root             string `json:"root"`
+	Status           string `json:"status"`
+	TransactionHash  string `json:"transactionHash"`
+	TransactionIndex string `json:"transactionIndex"`
 }

@@ -316,3 +316,23 @@ func (c *HTTPClient) Eth_getBlockByNumber(blockNumberHex string, includeTransact
 
 	return responseBlock.Result, nil
 }
+
+// Eth_getTransactionReceipt returns a transaction receipt
+//
+// See https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionreceipt
+func (c *HTTPClient) Eth_getTransactionReceipt(transactionHash string) (Receipt, error) {
+	reply, err := c.Call("eth_getTransactionReceipt", []interface{}{
+		transactionHash,
+	})
+	if err != nil {
+		return Receipt{}, err
+	}
+
+	var responseReceipt response_ethGetTransactionReceipt
+	err = json.Unmarshal(reply, &responseReceipt)
+	if err != nil {
+		return Receipt{}, err
+	}
+
+	return responseReceipt.Result, nil
+}
