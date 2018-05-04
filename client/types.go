@@ -30,7 +30,8 @@ type response_ethGetTransactionReceipt struct {
 	ID      int     `json:"id"`
 }
 
-type basicBlock struct {
+// BasicBlock contains the block structure without transaction data
+type BasicBlock struct {
 	Difficulty       string   `json:"difficulty"`
 	ExtraData        string   `json:"extraData"`
 	GasLimit         string   `json:"gasLimit"`
@@ -53,13 +54,13 @@ type basicBlock struct {
 }
 
 type blockWithTransactions struct {
-	basicBlock
+	BasicBlock
 	Transactions         []Transaction `json:"transactions"`
 	TransactionsWithData []Transaction `json:"transactionsWithData,omitempty"`
 }
 
 type blockWithoutTransactions struct {
-	basicBlock
+	BasicBlock
 	TransactionHashes       []string `json:"transactions"`
 	TransactionsWithoutData []string `json:"transactionsWithoutData,omitempty"`
 }
@@ -67,7 +68,7 @@ type blockWithoutTransactions struct {
 // Block represents a block structure containing the full transaction list or the transaction hashes.
 // It contains one of the two depending on the second bool parameter of eth_getBlockByNumber
 type Block struct {
-	basicBlock
+	BasicBlock
 	Transactions      []Transaction `json:"transactionsWithData,omitempty"`
 	TransactionHashes []string      `json:"transactionsWithoutData,omitempty"`
 }
