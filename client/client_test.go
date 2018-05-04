@@ -207,6 +207,24 @@ func TestHTTPClient_Eth_getBlockByNumber(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name:     "Get Mainnet block 5000000 with transaction data",
+			endpoint: testMainnetHTTPEndpoint,
+			args: args{
+				blockNumberHex:      "0x4C4B40",
+				includeTransactions: true,
+			},
+			wantErr: false,
+		},
+		{
+			name:     "Get Mainnet block 5000000 without transaction data",
+			endpoint: testMainnetHTTPEndpoint,
+			args: args{
+				blockNumberHex:      "0x4C4B40",
+				includeTransactions: false,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -223,6 +241,7 @@ func TestHTTPClient_Eth_getBlockByNumber(t *testing.T) {
 				ioutil.WriteFile(golden, gotJSON, 0644)
 			}
 			wantJSON, _ := ioutil.ReadFile(golden)
+
 			var want client.Block
 			if err := json.Unmarshal(wantJSON, &want); err != nil {
 				t.Error("Could not unmarshal expected response, err: ", err)

@@ -308,13 +308,46 @@ func (c *HTTPClient) Eth_getBlockByNumber(blockNumberHex string, includeTransact
 		return Block{}, err
 	}
 
-	var responseBlock response_ethGetBlockByNumber
-	err = json.Unmarshal(reply, &responseBlock)
-	if err != nil {
-		return Block{}, err
+	var b Block
+	if includeTransactions {
+		var responseBlock response_ethGetBlockByNumberWithTransactionData
+		err = json.Unmarshal(reply, &responseBlock)
+		if err != nil {
+			return Block{}, err
+		}
+
+		responseBlock.Result.TransactionsWithData = responseBlock.Result.Transactions
+
+		marshal, err := json.Marshal(responseBlock.Result)
+		if err != nil {
+			return Block{}, err
+		}
+
+		err = json.Unmarshal(marshal, &b)
+		if err != nil {
+			return Block{}, err
+		}
+	} else {
+		var responseBlock response_ethGetBlockByNumberWithoutTransactionData
+		err = json.Unmarshal(reply, &responseBlock)
+		if err != nil {
+			return Block{}, err
+		}
+
+		responseBlock.Result.TransactionsWithoutData = responseBlock.Result.TransactionHashes
+
+		marshal, err := json.Marshal(responseBlock.Result)
+		if err != nil {
+			return Block{}, err
+		}
+
+		err = json.Unmarshal(marshal, &b)
+		if err != nil {
+			return Block{}, err
+		}
 	}
 
-	return responseBlock.Result, nil
+	return b, nil
 }
 
 // Eth_getTransactionReceipt returns a transaction receipt

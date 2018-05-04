@@ -1,9 +1,15 @@
 package client
 
-type response_ethGetBlockByNumber struct {
-	Jsonrpc string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-	Result  Block  `json:"result"`
+type response_ethGetBlockByNumberWithTransactionData struct {
+	Jsonrpc string                `json:"jsonrpc"`
+	ID      int                   `json:"id"`
+	Result  blockWithTransactions `json:"result"`
+}
+
+type response_ethGetBlockByNumberWithoutTransactionData struct {
+	Jsonrpc string                   `json:"jsonrpc"`
+	ID      int                      `json:"id"`
+	Result  blockWithoutTransactions `json:"result"`
 }
 
 type response_netVersion struct {
@@ -24,47 +30,7 @@ type response_ethGetTransactionReceipt struct {
 	ID      int     `json:"id"`
 }
 
-// Block represents a block structure containing the full transaction list
-type Block struct {
-	Difficulty      string `json:"difficulty"`
-	ExtraData       string `json:"extraData"`
-	GasLimit        string `json:"gasLimit"`
-	GasUsed         string `json:"gasUsed"`
-	Hash            string `json:"hash"`
-	LogsBloom       string `json:"logsBloom"`
-	Miner           string `json:"miner"`
-	MixHash         string `json:"mixHash"`
-	Nonce           string `json:"nonce"`
-	Number          string `json:"number"`
-	ParentHash      string `json:"parentHash"`
-	ReceiptsRoot    string `json:"receiptsRoot"`
-	Sha3Uncles      string `json:"sha3Uncles"`
-	Size            string `json:"size"`
-	StateRoot       string `json:"stateRoot"`
-	Timestamp       string `json:"timestamp"`
-	TotalDifficulty string `json:"totalDifficulty"`
-	Transactions    []struct {
-		BlockHash        string `json:"blockHash"`
-		BlockNumber      string `json:"blockNumber"`
-		From             string `json:"from"`
-		Gas              string `json:"gas"`
-		GasPrice         string `json:"gasPrice"`
-		Hash             string `json:"hash"`
-		Input            string `json:"input"`
-		Nonce            string `json:"nonce"`
-		To               string `json:"to"`
-		TransactionIndex string `json:"transactionIndex"`
-		Value            string `json:"value"`
-		V                string `json:"v"`
-		R                string `json:"r"`
-		S                string `json:"s"`
-	} `json:"transactions"`
-	TransactionsRoot string   `json:"transactionsRoot"`
-	Uncles           []string `json:"uncles"`
-}
-
-// BlockShort represents a block structure without the transaction details
-type BlockShort struct {
+type basicBlock struct {
 	Difficulty       string   `json:"difficulty"`
 	ExtraData        string   `json:"extraData"`
 	GasLimit         string   `json:"gasLimit"`
@@ -82,9 +48,46 @@ type BlockShort struct {
 	StateRoot        string   `json:"stateRoot"`
 	Timestamp        string   `json:"timestamp"`
 	TotalDifficulty  string   `json:"totalDifficulty"`
-	Transactions     []string `json:"transactions"`
 	TransactionsRoot string   `json:"transactionsRoot"`
 	Uncles           []string `json:"uncles"`
+}
+
+type blockWithTransactions struct {
+	basicBlock
+	Transactions         []Transaction `json:"transactions"`
+	TransactionsWithData []Transaction `json:"transactionsWithData,omitempty"`
+}
+
+type blockWithoutTransactions struct {
+	basicBlock
+	TransactionHashes       []string `json:"transactions"`
+	TransactionsWithoutData []string `json:"transactionsWithoutData,omitempty"`
+}
+
+// Block represents a block structure containing the full transaction list or the transaction hashes.
+// It contains one of the two depending on the second bool parameter of eth_getBlockByNumber
+type Block struct {
+	basicBlock
+	Transactions      []Transaction `json:"transactionsWithData,omitempty"`
+	TransactionHashes []string      `json:"transactionsWithoutData,omitempty"`
+}
+
+// Transaction represents a transaction structure
+type Transaction struct {
+	BlockHash        string `json:"blockHash"`
+	BlockNumber      string `json:"blockNumber"`
+	From             string `json:"from"`
+	Gas              string `json:"gas"`
+	GasPrice         string `json:"gasPrice"`
+	Hash             string `json:"hash"`
+	Input            string `json:"input"`
+	Nonce            string `json:"nonce"`
+	To               string `json:"to"`
+	TransactionIndex string `json:"transactionIndex"`
+	Value            string `json:"value"`
+	V                string `json:"v"`
+	R                string `json:"r"`
+	S                string `json:"s"`
 }
 
 // Receipt represents a transaction receipt
