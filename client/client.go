@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	"upspin.io/log"
 )
 
 // Default parameters
@@ -142,7 +140,6 @@ func (c *HTTPClient) RawCall(method string, args []interface{}) ([]byte, error) 
 		return []byte{}, fmt.Errorf("code: %d, error: %s", respErr.Error.Code, respErr.Error.Message)
 	}
 
-	log.Debug("Got reply body: ", string(body))
 	return body, nil
 }
 
