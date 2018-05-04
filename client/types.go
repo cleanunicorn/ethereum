@@ -1,15 +1,11 @@
 package client
 
-type response_ethGetBlockByNumberWithTransactionData struct {
-	Jsonrpc string                `json:"jsonrpc"`
-	ID      int                   `json:"id"`
-	Result  blockWithTransactions `json:"result"`
-}
+import "encoding/json"
 
-type response_ethGetBlockByNumberWithoutTransactionData struct {
-	Jsonrpc string                   `json:"jsonrpc"`
-	ID      int                      `json:"id"`
-	Result  blockWithoutTransactions `json:"result"`
+type response_ethGetBlockByNumber struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  Block  `json:"result"`
 }
 
 type response_netVersion struct {
@@ -30,47 +26,31 @@ type response_ethGetTransactionReceipt struct {
 	ID      int     `json:"id"`
 }
 
-// BasicBlock contains the block structure without transaction data
-type BasicBlock struct {
-	Difficulty       string   `json:"difficulty"`
-	ExtraData        string   `json:"extraData"`
-	GasLimit         string   `json:"gasLimit"`
-	GasUsed          string   `json:"gasUsed"`
-	Hash             string   `json:"hash"`
-	LogsBloom        string   `json:"logsBloom"`
-	Miner            string   `json:"miner"`
-	MixHash          string   `json:"mixHash"`
-	Nonce            string   `json:"nonce"`
-	Number           string   `json:"number"`
-	ParentHash       string   `json:"parentHash"`
-	ReceiptsRoot     string   `json:"receiptsRoot"`
-	Sha3Uncles       string   `json:"sha3Uncles"`
-	Size             string   `json:"size"`
-	StateRoot        string   `json:"stateRoot"`
-	Timestamp        string   `json:"timestamp"`
-	TotalDifficulty  string   `json:"totalDifficulty"`
-	TransactionsRoot string   `json:"transactionsRoot"`
-	Uncles           []string `json:"uncles"`
-}
-
-type blockWithTransactions struct {
-	BasicBlock
-	Transactions         []Transaction `json:"transactions"`
-	TransactionsWithData []Transaction `json:"transactionsWithData,omitempty"`
-}
-
-type blockWithoutTransactions struct {
-	BasicBlock
-	TransactionHashes       []string `json:"transactions"`
-	TransactionsWithoutData []string `json:"transactionsWithoutData,omitempty"`
-}
-
 // Block represents a block structure containing the full transaction list or the transaction hashes.
 // It contains one of the two depending on the second bool parameter of eth_getBlockByNumber
 type Block struct {
-	BasicBlock
-	Transactions      []Transaction `json:"transactionsWithData,omitempty"`
-	TransactionHashes []string      `json:"transactionsWithoutData,omitempty"`
+	Difficulty        string          `json:"difficulty"`
+	ExtraData         string          `json:"extraData"`
+	GasLimit          string          `json:"gasLimit"`
+	GasUsed           string          `json:"gasUsed"`
+	Hash              string          `json:"hash"`
+	LogsBloom         string          `json:"logsBloom"`
+	Miner             string          `json:"miner"`
+	MixHash           string          `json:"mixHash"`
+	Nonce             string          `json:"nonce"`
+	Number            string          `json:"number"`
+	ParentHash        string          `json:"parentHash"`
+	ReceiptsRoot      string          `json:"receiptsRoot"`
+	Sha3Uncles        string          `json:"sha3Uncles"`
+	Size              string          `json:"size"`
+	StateRoot         string          `json:"stateRoot"`
+	Timestamp         string          `json:"timestamp"`
+	TotalDifficulty   string          `json:"totalDifficulty"`
+	TransactionsRoot  string          `json:"transactionsRoot"`
+	Uncles            []string        `json:"uncles"`
+	RawTransactions   json.RawMessage `json:"transactions"`
+	Transactions      []Transaction   `json:"transactionData"`
+	TransactionHashes []string        `json:"transactionHashes"`
 }
 
 // Transaction represents a transaction structure

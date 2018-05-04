@@ -302,40 +302,22 @@ func (c *HTTPClient) Eth_getBlockByNumber(blockNumberHex string, includeTransact
 		return Block{}, err
 	}
 
-	var b Block
+	var getBlockReply response_ethGetBlockByNumber
+	err = json.Unmarshal(reply, &getBlockReply)
+	if err != nil {
+		return Block{}, err
+	}
+
+	b := getBlockReply.Result
+	b.RawTransactions = json.RawMessage(`{}`)
+
 	if includeTransactions {
-		var responseBlock response_ethGetBlockByNumberWithTransactionData
-		err = json.Unmarshal(reply, &responseBlock)
-		if err != nil {
-			return Block{}, err
-		}
-
-		responseBlock.Result.TransactionsWithData = responseBlock.Result.Transactions
-
-		marshal, err := json.Marshal(responseBlock.Result)
-		if err != nil {
-			return Block{}, err
-		}
-
-		err = json.Unmarshal(marshal, &b)
+		err := json.Unmarshal(getBlockReply.Result.RawTransactions, &b.Transactions)
 		if err != nil {
 			return Block{}, err
 		}
 	} else {
-		var responseBlock response_ethGetBlockByNumberWithoutTransactionData
-		err = json.Unmarshal(reply, &responseBlock)
-		if err != nil {
-			return Block{}, err
-		}
-
-		responseBlock.Result.TransactionsWithoutData = responseBlock.Result.TransactionHashes
-
-		marshal, err := json.Marshal(responseBlock.Result)
-		if err != nil {
-			return Block{}, err
-		}
-
-		err = json.Unmarshal(marshal, &b)
+		err := json.Unmarshal(getBlockReply.Result.RawTransactions, &b.TransactionHashes)
 		if err != nil {
 			return Block{}, err
 		}

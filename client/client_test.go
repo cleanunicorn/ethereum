@@ -237,7 +237,10 @@ func TestHTTPClient_Eth_getBlockByNumber(t *testing.T) {
 
 			golden := filepath.Join("test-fixtures/", tt.name+".golden")
 			if *update {
-				gotJSON, _ := json.MarshalIndent(got, "", "    ")
+				gotJSON, err := json.MarshalIndent(got, "", "    ")
+				if err != nil {
+					t.Error("Error marshalling golden file, err: ", err)
+				}
 				ioutil.WriteFile(golden, gotJSON, 0644)
 			}
 			wantJSON, _ := ioutil.ReadFile(golden)

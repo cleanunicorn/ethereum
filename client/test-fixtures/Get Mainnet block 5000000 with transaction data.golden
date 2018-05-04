@@ -18,7 +18,8 @@
     "totalDifficulty": "0x7be181d83d2d77d052",
     "transactionsRoot": "0x91dfce7cc2174482b5ebcf6f4beedce854641982eadb1a8cf538e3206abf7836",
     "uncles": [],
-    "transactionsWithData": [
+    "transactions": {},
+    "transactionData": [
         {
             "blockHash": "0x7d5a4369273c723454ac137f48a4f142b097aa2779464e6505f1b1c5e37b5382",
             "blockNumber": "0x4c4b40",
@@ -1763,5 +1764,6 @@
             "r": "0x5082eaee4cafcec9057a45a5be2ec37f01df50ad8c6088c397ad4362845c542e",
             "s": "0x2dd69f9618ba0020fcc2f12246f9c4116e81f6580577b7bc4d4e4be4b6bce1a0"
         }
-    ]
+    ],
+    "transactionHashes": null
 }

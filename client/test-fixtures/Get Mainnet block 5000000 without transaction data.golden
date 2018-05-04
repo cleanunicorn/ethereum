@@ -18,7 +18,9 @@
     "totalDifficulty": "0x7be181d83d2d77d052",
     "transactionsRoot": "0x91dfce7cc2174482b5ebcf6f4beedce854641982eadb1a8cf538e3206abf7836",
     "uncles": [],
-    "transactionsWithoutData": [
+    "transactions": {},
+    "transactionData": null,
+    "transactionHashes": [
         "0x569c5b35f203ca6db6e2cec44bceba756fad513384e2bd79c06a8c0181273379",
         "0x696a35492b283624ccf4ae9438ae2d5d5e84a4a00798155b568d1eb52606d829",
         "0xb4de9f39cf7b6218d51ded0174007d4f9344ddfa690f9c94af00b4d18b7d3bb0",
