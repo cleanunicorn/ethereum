@@ -17,8 +17,8 @@
             "args": [
                 "--http=https://mainnet.infura.io:8545",
                 "--method=eth_getBlockByNumber",
-                "0x1", 
-                "true",
+                "0x4C4B40", 
+                "false",
             ],
             "showLog": true
         }

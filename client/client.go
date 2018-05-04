@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"upspin.io/log"
 )
 
 // Default parameters
@@ -56,7 +56,6 @@ func (c *HTTPClient) Call(method string, params interface{}) ([]byte, error) {
 	defer request.Body.Close()
 	request.Header.Add("Content-Type", "application/json")
 
-	log.Debug("Making JSON request: ", string(dataJSON))
 	response, err := c.client.Do(request)
 	if err != nil {
 		return []byte{}, err
@@ -85,7 +84,6 @@ func (c *HTTPClient) Call(method string, params interface{}) ([]byte, error) {
 		return []byte{}, fmt.Errorf("code: %d, error: %s", respErr.Error.Code, respErr.Error.Message)
 	}
 
-	log.Debug("Got reply body: ", string(body))
 	return body, nil
 }
 
@@ -116,7 +114,6 @@ func (c *HTTPClient) RawCall(method string, args []interface{}) ([]byte, error) 
 	defer request.Body.Close()
 	request.Header.Add("Content-Type", "application/json")
 
-	log.Debug("Making JSON request: ", string(dataJSON))
 	response, err := c.client.Do(request)
 	if err != nil {
 		return []byte{}, err
