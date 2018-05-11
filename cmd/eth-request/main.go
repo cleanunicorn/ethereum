@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/cleanunicorn/ethereum/provider"
-
 	"github.com/cleanunicorn/ethereum/web3"
 )
 

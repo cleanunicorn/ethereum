@@ -10,33 +10,32 @@ go get github.com/cleanunicorn/ethereum
 
 ## Use
 
-Connect to an Ethereum endpoint
+Connect to an Ethereum endpoint and ask for a block number
 ```go
-c, err := client.DialHTTP("https://mainnet.infura.io")
+c := web3.NewClient(provider.DialHTTP("https://mainnet.infura.io/:8545"))
+
+b, err := c.Eth.GetBlockByNumber("0x2", false)
 if err != nil {
-	fmt.Printf("Could not dial into HTTP, err: %s", err)
+	fmt.Printf("Error getting latest block, err: %v", err)
+	os.Exit(1)
 }
+
+fmt.Printf("Block: %#v\n", b)
 ```
 
 Make raw calls
 ```go
-resp, err := c.RawCall("eth_getBlockByNumber", []interface{}{"0x1", true})
+c := web3.NewClient(provider.DialHTTP("https://mainnet.infura.io/:8545"))
+
+res, err := c.Provider.Call("eth_blockNumber", nil)
 if err != nil {
-	fmt.Printf("Error making a raw call to eth_getBlockByNumber, err: %s", err)
-} else {
-	fmt.Println(string(resp))
+	fmt.Printf("Error getting latest block, err: %v", err)
+	os.Exit(1)
 }
+fmt.Println(string(res))
 ```
 
-Or make specific requests like getting block number 1000000
-```go
-block, err := c.Eth_getBlockByNumber(fmt.Sprintf("0x%x", 1000000), true)
-if err != nil {
-	fmt.Printf("Error calling eth_blockByNumber directly, err: %s", err)
-} else {
-	fmt.Printf("%+v", block)
-}
-```
+Check [examples](https://github.com/cleanunicorn/ethereum/tree/restructure-namespaces/examples) for more sample code
 
 Check the [documentation](https://godoc.org/github.com/cleanunicorn/ethereum) 
 
