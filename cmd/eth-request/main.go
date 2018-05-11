@@ -6,22 +6,20 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/cleanunicorn/ethereum/client"
+	"github.com/cleanunicorn/ethereum/provider"
+
+	"github.com/cleanunicorn/ethereum/web3"
 )
 
 func main() {
 	var (
-		endpointHTTP = flag.String("http", "http://127.0.0.1:8545", "HTTP endpoint")
+		endpointHTTP = flag.String("http", "https://mainnet.infura.io:8545", "HTTP endpoint")
 		method       = flag.String("method", "", "method")
 	)
 	flag.Parse()
 	args := flag.Args()
 
-	c, err := client.DialHTTP(*endpointHTTP)
-	if err != nil {
-		fmt.Printf("Could not dial into HTTP endpoint: %s, err: %s", *endpointHTTP, err)
-		os.Exit(1)
-	}
+	c := web3.NewClient(provider.DialHTTP(*endpointHTTP))
 
 	var params []interface{}
 	switch *method {
@@ -58,7 +56,7 @@ func main() {
 		}
 	}
 
-	response, err := c.Call(*method, params)
+	response, err := c.Provider.Call(*method, params)
 	if err != nil {
 		fmt.Println("Error making request, err: ", err)
 	}
