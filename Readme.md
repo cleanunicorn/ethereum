@@ -5,7 +5,7 @@
 ## Install
 
 ```
-go get github.com/cleanunicorn/ethereum
+go get github.com/cleanunicorn/ethereum/web3
 ```
 
 ## Use
