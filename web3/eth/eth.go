@@ -13,14 +13,23 @@ import (
 	"github.com/cleanunicorn/ethereum/web3/types"
 )
 
+// Eth module
 type Eth struct {
 	provider provider.Provider
 }
 
+// NewEth returns an instance of the eth module
 func NewEth(p provider.Provider) Eth {
 	return Eth{
 		provider: p,
 	}
+}
+
+// ResponseEthGetTransactionCount is the structure returned by https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactioncount
+type ResponseEthGetTransactionCount struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Result  string `json:"result"`
+	ID      uint   `json:"id"`
 }
 
 // GetTransactionCount returns how many transactions the account has.
@@ -33,13 +42,7 @@ func (c Eth) GetTransactionCount(account string, block string) (uint64, error) {
 		return 0, err
 	}
 
-	type eth_getTransactionCount struct {
-		Jsonrpc string `json:"jsonrpc"`
-		Result  string `json:"result"`
-		ID      uint   `json:"id"`
-	}
-	var transactionCountReply eth_getTransactionCount
-
+	var transactionCountReply ResponseEthGetTransactionCount
 	err = json.Unmarshal(reply, &transactionCountReply)
 	if err != nil {
 		return 0, err
@@ -51,6 +54,13 @@ func (c Eth) GetTransactionCount(account string, block string) (uint64, error) {
 	}
 
 	return count, nil
+}
+
+// ResponseEthGetBalance is the structure returned by https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getbalance
+type ResponseEthGetBalance struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Result  string `json:"result"`
+	ID      uint   `json:"id"`
 }
 
 // GetBalance returns the balance of the account at the specified block.
@@ -67,13 +77,7 @@ func (c Eth) GetBalance(account string, block string) (*big.Int, error) {
 		return big.NewInt(0), err
 	}
 
-	type eth_getBalance struct {
-		Jsonrpc string `json:"jsonrpc"`
-		Result  string `json:"result"`
-		ID      uint   `json:"id"`
-	}
-	var balanceReply eth_getBalance
-
+	var balanceReply ResponseEthGetBalance
 	err = json.Unmarshal(reply, &balanceReply)
 	if err != nil {
 		return big.NewInt(0), err
@@ -82,6 +86,23 @@ func (c Eth) GetBalance(account string, block string) (*big.Int, error) {
 	balance := helper.HexStrToBigInt(balanceReply.Result)
 
 	return balance, nil
+}
+
+// ResponseEthSendRawTransaction is the structure returned by https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendrawtransaction
+type ResponseEthSendRawTransaction struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Result  string `json:"result"`
+	ID      uint   `json:"id"`
+}
+
+// ResponseEthSendRawTransactionError is the structure returned when an invalid signed transaction was sent
+type ResponseEthSendRawTransactionError struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Error   struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
+	ID int `json:"id"`
 }
 
 // SendRawTransaction send a signed transaction to the endpoint and returns the transaction hash.
@@ -93,29 +114,14 @@ func (c Eth) SendRawTransaction(signedTransaction string) (string, error) {
 		return "", err
 	}
 
-	type eth_sendRawTransaction struct {
-		Jsonrpc string `json:"jsonrpc"`
-		Result  string `json:"result"`
-		ID      uint   `json:"id"`
-	}
-	var transactionHashReply eth_sendRawTransaction
-
+	var transactionHashReply ResponseEthSendRawTransaction
 	err = json.Unmarshal(reply, &transactionHashReply)
 	if err != nil {
 		return "", err
 	}
 
 	if strings.Compare(transactionHashReply.Result, "") == 0 {
-		type eth_sendRawTransactionError struct {
-			Jsonrpc string `json:"jsonrpc"`
-			Error   struct {
-				Code    int    `json:"code"`
-				Message string `json:"message"`
-			} `json:"error"`
-			ID int `json:"id"`
-		}
-
-		var transactionError eth_sendRawTransactionError
+		var transactionError ResponseEthSendRawTransactionError
 		err := json.Unmarshal(reply, &transactionError)
 		if err != nil {
 			return "", err
@@ -131,7 +137,8 @@ func (c Eth) SendRawTransaction(signedTransaction string) (string, error) {
 	return transactionHashReply.Result, nil
 }
 
-type response_ethBlockNumber struct {
+// ResponseEthBlockNumber is the structure returned by https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blocknumber
+type ResponseEthBlockNumber struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Result  string `json:"result"`
 	ID      uint   `json:"id"`
@@ -146,8 +153,7 @@ func (c Eth) BlockNumber() (*big.Int, error) {
 		return big.NewInt(0), err
 	}
 
-	var blockNumberReply response_ethBlockNumber
-
+	var blockNumberReply ResponseEthBlockNumber
 	err = json.Unmarshal(reply, &blockNumberReply)
 	if err != nil {
 		return big.NewInt(0), err
@@ -158,7 +164,8 @@ func (c Eth) BlockNumber() (*big.Int, error) {
 	return blockNumber, nil
 }
 
-type response_ethGetBlockByNumber struct {
+// ResponseEthGetBlockByNumber is the structure returned by https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbynumber
+type ResponseEthGetBlockByNumber struct {
 	Jsonrpc string      `json:"jsonrpc"`
 	ID      int         `json:"id"`
 	Result  types.Block `json:"result"`
@@ -175,7 +182,7 @@ func (c Eth) GetBlockByNumber(blockNumberHex string, includeTransactions bool) (
 		return types.Block{}, err
 	}
 
-	var getBlockReply response_ethGetBlockByNumber
+	var getBlockReply ResponseEthGetBlockByNumber
 	err = json.Unmarshal(reply, &getBlockReply)
 	if err != nil {
 		return types.Block{}, err
@@ -199,7 +206,8 @@ func (c Eth) GetBlockByNumber(blockNumberHex string, includeTransactions bool) (
 	return b, nil
 }
 
-type response_ethGetTransactionReceipt struct {
+// ResponseEthGetTransactionReceipt is the structure returned by https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionreceipt
+type ResponseEthGetTransactionReceipt struct {
 	Jsonrpc string        `json:"jsonrpc"`
 	Result  types.Receipt `json:"result"`
 	ID      int           `json:"id"`
@@ -216,7 +224,7 @@ func (c Eth) GetTransactionReceipt(transactionHash string) (types.Receipt, error
 		return types.Receipt{}, err
 	}
 
-	var responseReceipt response_ethGetTransactionReceipt
+	var responseReceipt ResponseEthGetTransactionReceipt
 	err = json.Unmarshal(reply, &responseReceipt)
 	if err != nil {
 		return types.Receipt{}, err
