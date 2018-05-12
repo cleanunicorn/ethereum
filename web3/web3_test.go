@@ -17,7 +17,7 @@ import (
 	"github.com/cleanunicorn/ethereum/web3"
 
 	"github.com/cleanunicorn/ethereum/core"
-	helpertypes "github.com/cleanunicorn/ethereum/types"
+	"github.com/cleanunicorn/ethereum/web3/account"
 	"github.com/cleanunicorn/ethereum/web3/types"
 	"github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -264,8 +264,8 @@ func TestHTTPClient_Eth_sendRawTransaction(t *testing.T) {
 			c := web3.NewClient(provider.DialHTTP(tt.endpoint))
 			networkID, _ := c.Net.Version()
 			signer := core.CreateSigner(networkID)
-			a, _ := helpertypes.AccountFromHexKey(tt.account1PrivateKey)
-			b, _ := helpertypes.AccountFromHexKey(tt.account2PrivateKey)
+			a, _ := account.FromHexKey(tt.account1PrivateKey)
+			b, _ := account.FromHexKey(tt.account2PrivateKey)
 
 			nonce, err := c.Eth.GetTransactionCount(a.Address(), "latest")
 			if err != nil {

@@ -1,4 +1,4 @@
-package types
+package account
 
 import (
 	"crypto/ecdsa"
@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+// Account entity
 type Account struct {
 	Key ecdsa.PrivateKey
 }
@@ -21,7 +22,8 @@ func (a *Account) PrivateKey() string {
 	return hex.EncodeToString(a.Key.D.Bytes())
 }
 
-func AccountFromHexKey(privateKey string) (Account, error) {
+// FromHexKey generates an Account from a string version of a private key
+func FromHexKey(privateKey string) (Account, error) {
 	key, err := crypto.HexToECDSA(privateKey)
 	if err != nil {
 		return Account{}, err

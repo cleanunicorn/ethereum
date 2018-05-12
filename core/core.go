@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/cleanunicorn/ethereum/types"
+	"github.com/cleanunicorn/ethereum/web3/account"
 	"github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -12,22 +12,23 @@ import (
 )
 
 // CreateWallet creates a wallet and outputs the account data
-func CreateWallet() (types.Account, error) {
+func CreateWallet() (account.Account, error) {
 	log.Debug("Creating wallet")
 
 	key, err := crypto.GenerateKey()
 	if err != nil {
-		return types.Account{}, fmt.Errorf("Could not generate private key %s", err)
+		return account.Account{}, fmt.Errorf("Could not generate private key %s", err)
 	}
 
-	a := types.Account{
+	a := account.Account{
 		Key: *key,
 	}
 
 	return a, nil
 }
 
-// CreateSigner creates a signer specific to the network
+// CreateSigner creates a signer specific for the network as specified in EIP155
+// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
 func CreateSigner(network int64) gethtypes.EIP155Signer {
 	return gethtypes.NewEIP155Signer(big.NewInt(network))
 }
@@ -35,7 +36,7 @@ func CreateSigner(network int64) gethtypes.EIP155Signer {
 // SignTx uses the account and the rest of the parameters to sign a transaction and return the signed transaction
 func SignTx(
 	signer gethtypes.EIP155Signer,
-	account types.Account,
+	account account.Account,
 	nonce uint64,
 	to common.Address,
 	amount *big.Int,
