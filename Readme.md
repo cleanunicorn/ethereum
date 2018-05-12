@@ -35,7 +35,7 @@ if err != nil {
 fmt.Println(string(res))
 ```
 
-Check [examples](https://github.com/cleanunicorn/ethereum/tree/restructure-namespaces/examples) for more sample code
+Check [examples](https://godoc.org/github.com/cleanunicorn/ethereum/web3#pkg-examples) for more sample code
 
 Check the [documentation](https://godoc.org/github.com/cleanunicorn/ethereum) 
 
