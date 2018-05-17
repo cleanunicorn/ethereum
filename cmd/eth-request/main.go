@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -59,5 +61,9 @@ func main() {
 	if err != nil {
 		fmt.Println("Error making request, err: ", err)
 	}
-	fmt.Println(string(response))
+
+	// pretty print
+	buf := new(bytes.Buffer)
+	json.Indent(buf, response, "", "  ")
+	fmt.Println(buf)
 }
