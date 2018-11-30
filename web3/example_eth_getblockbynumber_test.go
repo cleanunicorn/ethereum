@@ -11,7 +11,7 @@ import (
 )
 
 func Example() {
-	c := web3.NewClient(provider.DialHTTP("https://mainnet.infura.io:8545"))
+	c := web3.NewClient(provider.DialHTTP("https://mainnet.infura.io"))
 
 	// Get block number 16 without transaction data included
 	b, err := c.Eth.GetBlockByNumber("0x10", false)
@@ -27,7 +27,7 @@ func Example() {
 }
 
 func Example_rawCall() {
-	c := web3.NewClient(provider.DialHTTP("https://mainnet.infura.io:8545"))
+	c := web3.NewClient(provider.DialHTTP("https://mainnet.infura.io"))
 
 	res, err := c.Provider.Call(
 		// Specify the call

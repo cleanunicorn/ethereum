@@ -49,20 +49,20 @@ func TestHTTPClient_Net_version(t *testing.T) {
 }
 
 // Ethereum node variables
-const testMainnetHTTPEndpoint = "https://mainnet.infura.io:8545"
+const testMainnetHTTPEndpoint = "https://mainnet.infura.io"
 const ganachePort = "58545"
 const testGanacheHTTPEndpoint = "http://localhost:" + ganachePort
 const testGanacheNetworkID = 99
-const ganacheAccount0 = "0xd84cf7a5a3c7985398c591bc61662b8be438dab8"
-const ganacheAccount1 = "0xb2622b59630e294578852c3d591e87dcb6507037"
-const ganacheAccount2 = "0x534695bacbdf0428ec1b7cec15eccc88680959bd"
-const ganacheAccount3 = "0x32692e49169679212038d207ef38cc045af55244"
-const ganacheAccount4 = "0xe87b5397e46e4960256191defe9ae40029e9875b"
-const ganacheAccount5 = "0xc0b8d4d03aadb9c82b468620a948c75628719ddd"
-const ganacheAccount6 = "0x273040d239bc002ccdebf6c5d69e4a751731402b"
-const ganacheAccount7 = "0x9f594debb9d77a77e5a63477f0c5e5d3464c208e"
-const ganacheAccount8 = "0xb2784b58c227c8968fc78ae4829c87996d497d70"
-const ganacheAccount9 = "0x5a70a6b58d20c95a3fd29a0ee046412cddc98bde"
+const ganacheAccount0 = "0xbd1e71ca74e8665718be94189a9e9f8ea07087d1"
+const ganacheAccount1 = "0xc5bda996ac2d16ee24e0c9f69e44e12f79ddeff3"
+const ganacheAccount2 = "0xc9e654a52918ead651a19491e1e5d6e2b7c54805"
+const ganacheAccount3 = "0x91f2e144578057c0d27aaea35f81e932397f7162"
+const ganacheAccount4 = "0x942921a92195aeb1a72798ee19edb11b05456d70"
+const ganacheAccount5 = "0x11775df7a5541e7affa3c07c415a9a88e8f878bf"
+const ganacheAccount6 = "0xe07b84dbd005dd48fd3632ec910630d96462c22e"
+const ganacheAccount7 = "0x417f0549f0c8afbf8e440bfca721905adc51c128"
+const ganacheAccount8 = "0x95355382c7d4bcae94df7f0ff1178b325bd7512b"
+const ganacheAccount9 = "0x0ed774f495f902952dca2ce019241433c0088686"
 
 func startGanache(t *testing.T) func() {
 	// Make sure ganache is stopped
@@ -72,7 +72,7 @@ func startGanache(t *testing.T) func() {
 
 	// Start Ganache
 	command := "docker"
-	args := fmt.Sprintf("run --net=host --name=ganache --rm trufflesuite/ganache-cli -s 99 -d 0 -i %d -p %s", testGanacheNetworkID, ganachePort)
+	args := fmt.Sprintf("run --net=host --name=ganache --rm trufflesuite/ganache-cli -s 99 -i %d -p %s", testGanacheNetworkID, ganachePort)
 	ganache := exec.Command(command, strings.Split(args, " ")...)
 	ganacheOut, err := ganache.StdoutPipe()
 	if err != nil {
@@ -87,7 +87,7 @@ func startGanache(t *testing.T) func() {
 	for {
 		n, err := ganacheOut.Read(buff)
 		if err != nil {
-			t.Fatal("Error reading output")
+			t.Fatal("Error reading output, err = ", err)
 		}
 		output = output + string(buff[:n])
 
